@@ -32,10 +32,8 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.os.Trace;
 import android.os.UserHandle;
-import android.provider.Settings;
 import android.telecom.CallAudioState;
 import android.telecom.ConnectionService;
-import android.telecom.DisconnectCause;
 import android.telecom.InCallService;
 import android.telecom.Log;
 import android.telecom.Logging.Runnable;
@@ -49,7 +47,6 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.telecom.IInCallService;
 import com.android.internal.util.IndentingPrintWriter;
 import com.android.server.telecom.SystemStateHelper.SystemStateListener;
-import com.android.internal.util.omni.OmniUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,12 +63,6 @@ import java.util.concurrent.TimeUnit;
  * a binding to the {@link IInCallService} (implemented by the in-call app).
  */
 public class InCallController extends CallsManagerListenerBase {
-
-    private static final long[] INCALL_VIBRATION_PATTERN = {
-            100,
-            200,
-            0,
-    };
 
     public class InCallServiceConnection {
         /**
@@ -919,17 +910,6 @@ public class InCallController extends CallsManagerListenerBase {
 
     @Override
     public void onCallStateChanged(Call call, int oldState, int newState) {
-        boolean vibrateOnConnect = Settings.System.getIntForUser(mContext.getContentResolver(),
-            Settings.System.OMNI_VIBRATE_ON_CONNECT, 0, UserHandle.USER_CURRENT) == 1;
-        boolean vibrateOnDisconnect = Settings.System.getIntForUser(mContext.getContentResolver(),
-            Settings.System.OMNI_VIBRATE_ON_DISCONNECT, 0, UserHandle.USER_CURRENT) == 1;
-
-        if (oldState == CallState.DIALING && newState == CallState.ACTIVE && vibrateOnConnect) {
-            OmniUtils.vibratePattern(mContext, INCALL_VIBRATION_PATTERN);
-        } else if (oldState == CallState.ACTIVE && newState == CallState.DISCONNECTED
-                && vibrateOnDisconnect) {
-            OmniUtils.vibratePattern(mContext, INCALL_VIBRATION_PATTERN);
-        }
         updateCall(call);
     }
 
